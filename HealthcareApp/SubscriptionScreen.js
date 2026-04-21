@@ -38,7 +38,8 @@ const prices = {
   semiannual: { test: 0.01, basic: 149.90, intermediate: 259.90, premium: 399.90 },
 };
 
-export default function SubscriptionScreen({ navigation }) {
+export default function SubscriptionScreen({ navigation, route }) {
+  const updateProfData = route.params?.updateProfData;
   const [selectedDuration, setSelectedDuration] = useState('monthly');
   const [selectedPlan, setSelectedPlan] = useState('test');
 
@@ -46,10 +47,17 @@ export default function SubscriptionScreen({ navigation }) {
     const plan = plans[selectedPlan];
     const price = prices[selectedDuration][selectedPlan];
     const durationLabel = durations.find(d => d.id === selectedDuration).label;
+    const assignedProfessional = 'Dra. Ana Souza';
+    // Update profData
+    if (updateProfData) {
+      updateProfData(prev => prev.map((prof, index) =>
+        index === 0 ? { ...prof, clients: [...prof.clients, { name: 'Cliente Teste', plan: plan.title, duration: durationLabel }], balance: prof.balance + price } : prof
+      ));
+    }
     Alert.alert(
       'Assinatura confirmada',
-      `Plano ${plan.title} ${durationLabel} - R$ ${price.toFixed(2)}`,
-      [{ text: 'OK', onPress: () => navigation.navigate('Home', { subscription: { plan: plan.title, duration: durationLabel, price } }) }]
+      `Plano ${plan.title} ${durationLabel} - R$ ${price.toFixed(2)}\nAtribuído a: ${assignedProfessional}`,
+      [{ text: 'OK', onPress: () => navigation.navigate('Home', { subscription: { plan: plan.title, duration: durationLabel, price, professional: assignedProfessional } }) }]
     );
   };
 

@@ -1,16 +1,32 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { authAPI, setAuthToken } from './api';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email && password) {
-      Alert.alert('Login realizado', 'Bem-vindo ao Healthcare Connect!');
-      navigation.navigate('Home', { isLoggedIn: true });
-    } else {
+  const handleLogin = async () => {
+    if (!email || !password) {
       Alert.alert('Erro', 'Preencha todos os campos.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await authAPI.login(email, password);
+      const { token, user } = response.data;
+
+      // Set auth token for future requests
+      setAuthToken(token);
+
+      Alert.alert('Login realizado', `Bem-vindo, ${user.name}!`);
+      navigation.navigate('Home', { isLoggedIn: true, token, user });
+    } catch (error) {
+      Alert.alert('Erro', error.response?.data?.error || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,8 +47,8 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+      <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
         <Text style={styles.link}>Não tem conta? Assine Conecta Saúde</Text>
@@ -69,6 +85,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 20,
+  },
+  buttonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   buttonText: {
     color: '#ffffff',

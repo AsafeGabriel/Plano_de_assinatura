@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, createContext, useContext, useEffect } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,18 +7,40 @@ import LoginScreen from './LoginScreen';
 import SubscriptionScreen from './SubscriptionScreen';
 import ChatScreen from './ChatScreen';
 import VideoScreen from './VideoScreen';
+import ProfessionalScreen from './ProfessionalScreen';
+import { professionalsAPI } from './api';
 
 const Stack = createNativeStackNavigator();
 
-const professionals = [
-  { name: 'Dra. Ana Souza', specialty: 'Nutricionista' },
-  { name: 'Dr. Lucas Pereira', specialty: 'Educador Físico' },
-  { name: 'Dra. Mariana Lima', specialty: 'Psicóloga' },
-];
+const ProfContext = createContext();
 
 function HomeScreen({ navigation, route }) {
+  const { profData } = useContext(ProfContext);
   const isLoggedIn = route.params?.isLoggedIn || false;
   const subscription = route.params?.subscription || null;
+  const [professionals, setProfessionals] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfessionals = async () => {
+      try {
+        const response = await professionalsAPI.getAll();
+        setProfessionals(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar profissionais:', error);
+        // Fallback to hardcoded data if API fails
+        setProfessionals([
+          { _id: '1', name: 'Dra. Ana Souza', specialty: 'Nutricionista' },
+          { _id: '2', name: 'Dr. Lucas Pereira', specialty: 'Educador Físico' },
+          { _id: '3', name: 'Dra. Mariana Lima', specialty: 'Psicóloga' },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfessionals();
+  }, []);
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
@@ -30,12 +52,16 @@ function HomeScreen({ navigation, route }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profissionais em destaque</Text>
-        {professionals.map((item) => (
-          <Pressable key={item.name} style={styles.card} onPress={() => subscription ? navigation.navigate('Chat') : Alert.alert('Acesso restrito', 'Assine um plano para acessar.')}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            <Text style={styles.cardSubtitle}>{item.specialty}</Text>
-          </Pressable>
-        ))}
+        {loading ? (
+          <Text style={styles.loadingText}>Carregando profissionais...</Text>
+        ) : (
+          professionals.map((item) => (
+            <Pressable key={item._id || item.name} style={styles.card} onPress={() => subscription ? navigation.navigate('Chat') : Alert.alert('Acesso restrito', 'Assine um plano para acessar.')}>
+              <Text style={styles.cardTitle}>{item.name}</Text>
+              <Text style={styles.cardSubtitle}>{item.specialty}</Text>
+            </Pressable>
+          ))
+        )}
       </View>
 
       <View style={styles.section}>
@@ -51,6 +77,15 @@ function HomeScreen({ navigation, route }) {
           </Pressable>
         </View>
       </View>
+
+      {isLoggedIn && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Área Profissional</Text>
+          <Pressable style={styles.primaryButton} onPress={() => navigation.navigate('Professional', { professional: 'Dra. Ana Souza', clients: profData[0].clients, balance: profData[0].balance })}>
+            <Text style={styles.primaryButtonText}>Ver Painel Profissional</Text>
+          </Pressable>
+        </View>
+      )}
 
       {!isLoggedIn && (
         <View style={styles.section}>
@@ -85,17 +120,21 @@ function HomeScreen({ navigation, route }) {
 }
 
 export default function App() {
+  const [profData, setProfData] = useState(professionals);
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#4338ca' }, headerTintColor: '#ffffff' }}>
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Conecta Saúde' }} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
-        <Stack.Screen name="Video" component={VideoScreen} />
-      </Stack.Navigator>
-      <StatusBar style="light" />
-    </NavigationContainer>
+    <ProfContext.Provider value={{ profData, setProfData }}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#4338ca' }, headerTintColor: '#ffffff' }}>
+          <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Conecta Saúde' }} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Subscription" component={SubscriptionScreen} initialParams={{ updateProfData: setProfData }} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="Video" component={VideoScreen} />
+          <Stack.Screen name="Professional" component={ProfessionalScreen} />
+        </Stack.Navigator>
+        <StatusBar style="light" />
+      </NavigationContainer>
+    </ProfContext.Provider>
   );
 }
 
@@ -298,5 +337,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#475569',
     lineHeight: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    padding: 20,
   },
 });
