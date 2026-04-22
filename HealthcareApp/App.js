@@ -19,30 +19,30 @@ const ProfContext = createContext();
 
 // Dados simulados dos profissionais de saúde
 const profissionais = [
-  { 
-    id: 1, 
-    nome: 'Dra. Ana Silva', 
-    especialidade: 'Psicologia Clínica', 
-    avaliacao: 4.9, 
-    preco: 'Plano Premium', 
+  {
+    id: 1,
+    nome: 'Dra. Ana Silva',
+    especialidade: 'Psicologia Clínica',
+    avaliacao: 4.9,
+    preco: 'Plano Premium',
     imagem: 'https://i.pravatar.cc/150?img=5',
     disponibilidade: 'Hoje'
   },
-  { 
-    id: 2, 
-    nome: 'Dr. Marcos Santos', 
-    especialidade: 'Nutrição', 
-    avaliacao: 4.8, 
-    preco: 'Todos os Planos', 
+  {
+    id: 2,
+    nome: 'Dr. Marcos Santos',
+    especialidade: 'Nutrição',
+    avaliacao: 4.8,
+    preco: 'Todos os Planos',
     imagem: 'https://i.pravatar.cc/150?img=11',
     disponibilidade: 'Amanhã'
   },
-  { 
-    id: 3, 
-    nome: 'Prof. João Costa', 
-    especialidade: 'Educação Física', 
-    avaliacao: 5.0, 
-    preco: 'Todos os Planos', 
+  {
+    id: 3,
+    nome: 'Prof. João Costa',
+    especialidade: 'Educação Física',
+    avaliacao: 5.0,
+    preco: 'Todos os Planos',
     imagem: 'https://i.pravatar.cc/150?img=12',
     disponibilidade: 'Hoje'
   },
@@ -70,7 +70,7 @@ function HomeScreen({ navigation }) {
             <Ionicons name="person" size={24} color="white" />
           </View>
         </View>
-        
+
         {/* Card de Consultas */}
         <View style={styles.consultasCard}>
           <View>
@@ -94,7 +94,7 @@ function HomeScreen({ navigation }) {
             <Text style={styles.actionTitle}>Videoconsulta</Text>
             <Text style={styles.actionSubtitle}>Avaliações e Psicologia</Text>
           </Pressable>
-          
+
           <Pressable style={styles.actionButton} onPress={() => navigation.navigate('Chat')}>
             <View style={styles.actionIconGreen}>
               <Ionicons name="chatbubble" size={24} color="#16a34a" />
@@ -107,7 +107,7 @@ function HomeScreen({ navigation }) {
 
       {/* Acesso aos Planos */}
       <View style={styles.plansAccessSection}>
-        <Pressable 
+        <Pressable
           style={styles.plansAccessButton}
           onPress={() => navigation.navigate('Subscription')}
         >
@@ -164,8 +164,8 @@ function SearchScreen({ navigation }) {
         <Text style={styles.searchTitle}>Profissionais</Text>
         <View style={styles.searchInputContainer}>
           <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
-          <TextInput 
-            placeholder="Pesquisar por nome ou especialidade..." 
+          <TextInput
+            placeholder="Pesquisar por nome ou especialidade..."
             style={styles.searchInput}
           />
         </View>
@@ -173,8 +173,8 @@ function SearchScreen({ navigation }) {
 
       <ScrollView style={styles.professionalsList}>
         {profissionais.map((medico) => (
-          <Pressable 
-            key={medico.id} 
+          <Pressable
+            key={medico.id}
             onPress={() => navigation.navigate('ProfessionalProfile', { medico })}
             style={styles.profesionalCard}
           >
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 20,
   },
-  
+
   // SearchScreen Styles
   searchContainer: {
     flex: 1,
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2563eb',
   },
-  
+
   // Placeholder styles
   placeholderContainer: {
     flex: 1,
