@@ -4,6 +4,39 @@ const User = require('../users/userModel');
 const passport = require('passport');
 const https = require('https');
 
+// CPF Validation Helper
+const validateCPF = (cpf) => {
+  // Remove non-numeric characters
+  cpf = cpf.replace(/\D/g, '');
+
+  // Check if CPF has 11 digits
+  if (cpf.length !== 11) {
+    return false;
+  }
+
+  // Check if all digits are the same (invalid CPF)
+  if (/^(\d)\1+$/.test(cpf)) {
+    return false;
+  }
+
+  // Calculate verification digits
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cpf.charAt(i)) * (10 - i);
+  }
+  let remainder = sum % 11;
+  let digit1 = remainder < 2 ? 0 : 11 - remainder;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cpf.charAt(i)) * (11 - i);
+  }
+  remainder = sum % 11;
+  let digit2 = remainder < 2 ? 0 : 11 - remainder;
+
+  return parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2;
+};
+
 // JWT Helper
 const generateToken = (user) => {
   return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
@@ -11,27 +44,37 @@ const generateToken = (user) => {
 
 // Register
 exports.register = async (req, res) => {
+  console.log('Register endpoint called');
+  console.log('Request body:', req.body);
+
   try {
     const { name, email, password, cpf, role } = req.body;
 
-    // Validate CPF (implement validation logic)
-    if (!validateCPF(cpf)) {
-      return res.status(400).json({ message: 'Invalid CPF' });
+    if (!name || !email || !password || !cpf || !role) {
+      console.log('Validation failed: missing fields');
+      return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Check if user already exists
+    if (!validateCPF(cpf)) {
+      console.log('Validation failed: invalid CPF');
+      return res.status(400).json({ message: 'CPF must be 11 digits' });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log('User already exists');
       return res.status(409).json({ message: 'Email already in use' });
     }
 
-    const user = new User({ name, email, password, cpf, role });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ name, email, password: hashedPassword, cpf, role });
     await user.save();
 
     const token = generateToken(user);
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Register error:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 };
 
@@ -39,16 +82,29 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    console.log('Login attempt:', { email });
+
     const user = await User.findOne({ email });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    if (!user.password) {
+      return res.status(401).json({ message: 'Use Google login for this account' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
     }
 
     const token = generateToken(user);
     res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 };
 
@@ -80,7 +136,14 @@ exports.googleMobile = (req, res) => {
     resp.on('end', async () => {
       try {
         const payload = JSON.parse(data);
-        if (payload.aud !== process.env.GOOGLE_CLIENT_ID) {
+        const validClientIds = [
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_EXPO_CLIENT_ID,
+          process.env.GOOGLE_ANDROID_CLIENT_ID,
+          process.env.GOOGLE_IOS_CLIENT_ID,
+        ].filter(Boolean);
+
+        if (!validClientIds.includes(payload.aud)) {
           return res.status(401).json({ message: 'Invalid Google client ID' });
         }
 
@@ -106,12 +169,4 @@ exports.googleMobile = (req, res) => {
   }).on('error', (err) => {
     return res.status(500).json({ message: 'Failed to verify token' });
   });
-};
-
-// CPF Validation (simple check)
-const validateCPF = (cpf) => {
-  // Remove dots and dashes
-  const cleanCPF = cpf.replace(/\D/g, '');
-  // Check if has 11 digits
-  return cleanCPF.length === 11;
 };

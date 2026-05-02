@@ -17,6 +17,7 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/healthcare'
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/professionals', require('./routes/professionals'));
+app.use('/api/users', require('./routes/users'));
 app.use('/api/subscriptions', require('./routes/subscriptions'));
 
 const PORT = process.env.PORT || 5000;

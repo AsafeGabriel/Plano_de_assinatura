@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Login failed' };
+      return { success: false, error: error.response?.data?.message || error.message || 'Login failed' };
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Registration failed' };
+      return { success: false, error: error.response?.data?.message || error.message || 'Registration failed' };
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +100,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const updateUser = useCallback(async (update) => {
+    try {
+      const updatedUser = typeof update === 'function' ? update(user) : update;
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to update user', error);
+      return { success: false, error };
+    }
+  }, [user]);
+
   const value = {
     user,
     token,
@@ -109,6 +121,7 @@ export const AuthProvider = ({ children }) => {
     register,
     googleLogin,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

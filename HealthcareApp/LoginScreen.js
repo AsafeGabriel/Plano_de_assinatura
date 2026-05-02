@@ -50,7 +50,7 @@ export default function LoginScreen({ navigation }) {
       <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Plans')}>
         <Text style={styles.link}>Não tem conta? Assine Conecta Saúde</Text>
       </TouchableOpacity>
     </View>

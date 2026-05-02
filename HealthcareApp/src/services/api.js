@@ -1,7 +1,19 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-const API_URL = 'http://10.0.0.172:3000';
+const getAppHost = () => {
+  const debuggerHost = Constants.manifest?.debuggerHost || Constants.manifest2?.debuggerHost;
+  if (debuggerHost) {
+    return debuggerHost.split(':')[0];
+  }
+
+  // Força usar IP local do PC quando debuggerHost não funciona
+  return '192.168.0.86';
+};
+
+const API_URL = 'http://192.168.0.86:3000';
 
 const api = axios.create({
   baseURL: API_URL,

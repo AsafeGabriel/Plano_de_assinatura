@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AuthContext } from './src/context/AuthContext';
 
 const durations = [
   { id: 'monthly', label: 'Mensal' },
@@ -11,7 +12,7 @@ const durations = [
 const plans = {
   test: {
     title: 'Teste',
-    description: 'Plano de teste gratuito para desenvolvimento.',
+    description: 'R$ 0,01 com upgrade direto para Premium.',
     consultations: 1,
   },
   basic: {
@@ -39,26 +40,64 @@ const prices = {
 };
 
 export default function SubscriptionScreen({ navigation, route }) {
+  const { user, updateUser } = useContext(AuthContext);
   const updateProfData = route.params?.updateProfData;
-  const [selectedDuration, setSelectedDuration] = useState('monthly');
-  const [selectedPlan, setSelectedPlan] = useState('test');
+  const selectedPlanFromRoute = route.params?.selectedPlan ?? 'test';
+  const selectedCycleFromRoute = route.params?.ciclo ?? 'monthly';
+  const [selectedDuration, setSelectedDuration] = useState(
+    ['monthly', 'bimonthly', 'quarterly', 'semiannual'].includes(selectedCycleFromRoute)
+      ? selectedCycleFromRoute
+      : 'monthly'
+  );
+  const [selectedPlan, setSelectedPlan] = useState(
+    ['test', 'basic', 'intermediate', 'premium'].includes(selectedPlanFromRoute)
+      ? selectedPlanFromRoute
+      : 'test'
+  );
+
+  const applySubscription = async (planKey, price) => {
+    const plan = plans[planKey];
+    const durationLabel = durations.find((d) => d.id === selectedDuration).label;
+    const patientName = user?.name || 'Paciente';
+
+    if (updateProfData) {
+      updateProfData((prev) =>
+        prev.map((prof, index) =>
+          index === 0
+            ? {
+              ...prof,
+              clients: [...prof.clients, { name: patientName, plan: plan.title, duration: durationLabel }],
+              balance: prof.balance + price,
+            }
+            : prof
+        )
+      );
+    }
+
+    if (updateUser && user) {
+      await updateUser({ ...user, plan: plan.title, consultationsLeft: plan.consultations });
+    }
+
+    Alert.alert('Assinatura confirmada', `Você assinou o plano ${plan.title} por R$ ${price.toFixed(2)}.`, [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
+  };
 
   const handleSubscribe = () => {
-    const plan = plans[selectedPlan];
-    const price = prices[selectedDuration][selectedPlan];
-    const durationLabel = durations.find(d => d.id === selectedDuration).label;
-    const assignedProfessional = 'Dra. Ana Souza';
-    // Update profData
-    if (updateProfData) {
-      updateProfData(prev => prev.map((prof, index) =>
-        index === 0 ? { ...prof, clients: [...prof.clients, { name: 'Cliente Teste', plan: plan.title, duration: durationLabel }], balance: prof.balance + price } : prof
-      ));
+    if (selectedPlan === 'test') {
+      Alert.alert(
+        'Plano de teste',
+        'Deseja pagar R$ 0,01 para ativar o plano Premium?',
+        [
+          { text: 'Não', style: 'cancel' },
+          { text: 'Sim', onPress: () => applySubscription('premium', 0.01) },
+        ]
+      );
+      return;
     }
-    Alert.alert(
-      'Assinatura confirmada',
-      `Plano ${plan.title} ${durationLabel} - R$ ${price.toFixed(2)}\nAtribuído a: ${assignedProfessional}`,
-      [{ text: 'OK', onPress: () => navigation.navigate('Home', { subscription: { plan: plan.title, duration: durationLabel, price, professional: assignedProfessional } }) }]
-    );
+
+    const price = prices[selectedDuration][selectedPlan];
+    applySubscription(selectedPlan, price);
   };
 
   return (

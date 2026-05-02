@@ -1,16 +1,22 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function VideoScreen({ navigation }) {
+export default function VideoScreen({ navigation, route }) {
+  const patient = route?.params?.patient;
+
   return (
     <View style={styles.container}>
       <View style={styles.videoArea}>
         <Text style={styles.videoText}>Vídeo Chamada - Conecta Saúde</Text>
-        <Text style={styles.subText}>Funcionalidade de vídeo será integrada em breve.</Text>
+        {patient ? (
+          <Text style={styles.subText}>Iniciando chamada com {patient.name || patient}.</Text>
+        ) : (
+          <Text style={styles.subText}>Funcionalidade de vídeo será integrada em breve.</Text>
+        )}
       </View>
 
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => alert(patient ? `Chamando ${patient.name || patient}...` : 'Iniciar chamada')}>
           <Text style={styles.buttonText}>Iniciar Chamada</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.buttonSecondary} onPress={() => navigation.goBack()}>

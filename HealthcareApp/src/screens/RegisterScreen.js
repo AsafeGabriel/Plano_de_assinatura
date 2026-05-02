@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, Picker } from 'react-native';
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
-import { GOOGLE_CLIENT_ID, ANDROID_CLIENT_ID, IOS_CLIENT_ID } from '../config/googleConfig';
+import { GOOGLE_CLIENT_ID, WEB_CLIENT_ID, EXPO_CLIENT_ID, ANDROID_CLIENT_ID, IOS_CLIENT_ID } from '../config/googleConfig';
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -21,9 +21,10 @@ export default function RegisterScreen({ navigation }) {
   console.log('Google redirect URI (add this to Google Console):', redirectUri);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: GOOGLE_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
+    expoClientId: EXPO_CLIENT_ID,
     iosClientId: IOS_CLIENT_ID,
+    androidClientId: ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_CLIENT_ID,
     redirectUri,
     responseType: 'id_token',
     scopes: ['profile', 'email'],
@@ -72,218 +73,346 @@ export default function RegisterScreen({ navigation }) {
     const result = await register(name, email, password, cpf, role);
     if (!result.success) {
       Alert.alert('Erro', result.error);
+      return;
     }
+
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#2563eb" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Criar Conta</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="always"
+            keyboardDismissMode="on-drag"
+          >
+            <View style={styles.hero}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <Ionicons name="chevron-back" size={22} color="#2563eb" />
+              </TouchableOpacity>
+              <Text style={styles.heroTitle}>Criar conta</Text>
+              <Text style={styles.heroSubtitle}>Escolha seu acesso e seja bem-vindo à Conecta Saúde.</Text>
+            </View>
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nome Completo</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="João Silva"
-            value={name}
-            onChangeText={setName}
-            editable={!isLoading}
-          />
-        </View>
+            <View style={styles.card}>
+              <View style={styles.formHeader}>
+                <Text style={styles.formTitle}>Seus dados</Text>
+                <Text style={styles.formDescription}>Preencha as informações abaixo para começar.</Text>
+              </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="seu@email.com"
-            value={email}
-            onChangeText={setEmail}
-            editable={!isLoading}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nome Completo</Text>
+                <View style={styles.inputBox}>
+                  <Ionicons name="person-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="João Silva"
+                    placeholderTextColor="#9ca3af"
+                    value={name}
+                    onChangeText={setName}
+                    editable={!isLoading}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                  />
+                </View>
+              </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>CPF</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="123.456.789-10"
-            value={cpf}
-            onChangeText={setCpf}
-            editable={!isLoading}
-            keyboardType="numeric"
-          />
-        </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email</Text>
+                <View style={styles.inputBox}>
+                  <Ionicons name="mail-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="seu@email.com"
+                    placeholderTextColor="#9ca3af"
+                    value={email}
+                    onChangeText={setEmail}
+                    editable={!isLoading}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+              </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Tipo de Usuário</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={role}
-              onValueChange={setRole}
-              style={styles.picker}
-              enabled={!isLoading}
-            >
-              <Picker.Item label="Paciente" value="patient" />
-              <Picker.Item label="Profissional" value="professional" />
-            </Picker>
-          </View>
-        </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>CPF</Text>
+                <View style={styles.inputBox}>
+                  <Ionicons name="document-text-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="123.456.789-10"
+                    placeholderTextColor="#9ca3af"
+                    value={cpf}
+                    onChangeText={setCpf}
+                    editable={!isLoading}
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Senha</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              editable={!isLoading}
-              secureTextEntry={!showPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-        </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Tipo de Usuário</Text>
+                <View style={styles.roleContainer}>
+                  <TouchableOpacity
+                    style={[styles.roleButton, role === 'patient' && styles.roleButtonActive]}
+                    onPress={() => setRole('patient')}
+                    disabled={isLoading}
+                  >
+                    <Text style={[styles.roleButtonText, role === 'patient' && styles.roleButtonTextActive]}>Paciente</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.roleButton, role === 'professional' && styles.roleButtonActive]}
+                    onPress={() => setRole('professional')}
+                    disabled={isLoading}
+                  >
+                    <Text style={[styles.roleButtonText, role === 'professional' && styles.roleButtonTextActive]}>Profissional</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Confirmar Senha</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              editable={!isLoading}
-              secureTextEntry={!showConfirmPassword}
-            />
-            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-              <Ionicons name={showConfirmPassword ? 'eye' : 'eye-off'} size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-        </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Senha</Text>
+                <View style={styles.inputBox}>
+                  <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9ca3af"
+                    value={password}
+                    onChangeText={setPassword}
+                    editable={!isLoading}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-        <TouchableOpacity
-          style={[styles.registerButton, isLoading && styles.disabledButton]}
-          onPress={handleRegister}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.registerButtonText}>Cadastrar</Text>
-          )}
-        </TouchableOpacity>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Confirmar Senha</Text>
+                <View style={styles.inputBox}>
+                  <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9ca3af"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    editable={!isLoading}
+                    secureTextEntry={!showConfirmPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <Ionicons name={showConfirmPassword ? 'eye' : 'eye-off'} size={20} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-        <TouchableOpacity style={[styles.googleButton, {marginTop:8}]} onPress={() => promptAsync()}>
-          <Ionicons name="logo-google" size={20} color="#1f2937" />
-          <Text style={styles.googleButtonText}>Continuar com Google</Text>
-        </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.registerButton, isLoading && styles.disabledButton]}
+                onPress={handleRegister}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.registerButtonText}>Cadastrar</Text>
+                )}
+              </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}>
-            Já tem conta? <Text style={styles.loginLink}>Entre aqui</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+              <Text style={styles.orText}>ou</Text>
+
+              <TouchableOpacity style={styles.googleButton} onPress={() => promptAsync({ useProxy: true })}>
+                <Ionicons name="logo-google" size={20} color="#1f2937" />
+                <Text style={styles.googleButtonText}>Continuar com Google</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.bottomTextWrapper}>
+                <Text style={styles.loginText}>Já tem conta? <Text style={styles.loginLink}>Entre aqui</Text></Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#eef2ff',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
-  header: {
-    flexDirection: 'row',
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 30,
+  },
+  hero: {
+    backgroundColor: 'white',
+    borderRadius: 28,
+    padding: 22,
+    marginBottom: 20,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#eef2ff',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
+    marginBottom: 18,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1f2937',
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 10,
   },
-  form: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    gap: 16,
+  heroSubtitle: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  formHeader: {
+    marginBottom: 18,
+  },
+  formTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 6,
+  },
+  formDescription: {
+    color: '#64748b',
+    fontSize: 14,
+    lineHeight: 20,
   },
   inputGroup: {
-    marginBottom: 8,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    color: '#334155',
+    marginBottom: 10,
   },
-  input: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  pickerContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-  },
-  passwordContainer: {
+  inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    paddingHorizontal: 12,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 14,
   },
-  passwordInput: {
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
     flex: 1,
-    paddingVertical: 10,
+    minHeight: 48,
+    color: '#0f172a',
     fontSize: 16,
+  },
+  roleContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  roleButton: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  roleButtonActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  roleButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  roleButtonTextActive: {
+    color: 'white',
   },
   registerButton: {
     backgroundColor: '#2563eb',
-    borderRadius: 8,
-    paddingVertical: 12,
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
   disabledButton: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   registerButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  orText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginVertical: 16,
+    fontSize: 13,
+    letterSpacing: 0.8,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  googleButtonText: {
+    color: '#1f2937',
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 10,
+  },
+  bottomTextWrapper: {
+    marginTop: 20,
+    alignItems: 'center',
   },
   loginText: {
-    textAlign: 'center',
-    color: '#6b7280',
+    color: '#475569',
     fontSize: 14,
-    marginTop: 16,
   },
   loginLink: {
     color: '#2563eb',
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

@@ -1,6 +1,5 @@
 const express = require('express');
-const passport = require('passport');
-const { register, login, googleAuth, googleCallback, googleMobile } = require('./authController');
+const { register, login, googleMobile } = require('./authController');
 
 const router = express.Router();
 
@@ -8,7 +7,5 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/google/mobile', googleMobile);
-router.get('/google', googleAuth);
-router.get('/google/callback', googleCallback);
 
 module.exports = router;
