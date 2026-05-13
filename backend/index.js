@@ -53,8 +53,6 @@ const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/conecta_sau
 console.log('🔗 Connecting to MongoDB:', mongoUri.split('@')[1] || mongoUri);
 
 mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
 })
