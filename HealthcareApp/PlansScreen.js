@@ -168,13 +168,13 @@ export default function PlansScreen({ navigation }) {
 
       const isTestPlan = plan.id === 'teste';
       const planKey = isTestPlan ? 'premium' : plan.id;
-      
+
       console.log('💰 Calculating price for:', { selectedPeriod, planKey, isTestPlan });
       console.log('Available prices:', prices);
-      
+
       const price = isTestPlan ? 0.01 : (prices[selectedPeriod]?.[planKey] || prices['mensal'][planKey] || 0);
       const periodLabel = periods.find(p => p.id === selectedPeriod)?.label || 'Mensal';
-      
+
       console.log('💵 Price calculated:', { price, periodLabel });
 
       let professionalId = user.professionalId || defaultProfessional?._id;
@@ -474,9 +474,9 @@ export default function PlansScreen({ navigation }) {
       )}
       {paymentModalVisible && paymentResult && (
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalDialog, { backgroundColor: colors.containerBg, borderColor: colors.border }]}> 
+          <View style={[styles.modalDialog, { backgroundColor: colors.containerBg, borderColor: colors.border }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Pagamento PIX gerado</Text>
-            <Text style={[styles.modalMessage, { color: colors.textSecondary }]}> 
+            <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
               {paymentResult.message || 'Escaneie o QR Code abaixo para efetuar o pagamento. A ativação será concluída automaticamente após a confirmação.'}
             </Text>
             {paymentResult.qrCodeUrl ? (

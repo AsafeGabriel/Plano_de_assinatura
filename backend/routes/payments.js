@@ -60,8 +60,8 @@ router.post('/create-pix', verifyToken, async (req, res) => {
     const { professionalId, subscriptionId, planName, planPrice, planDuration } = req.body;
 
     if (!professionalId || !planName || !planPrice) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: professionalId, planName, planPrice' 
+      return res.status(400).json({
+        error: 'Missing required fields: professionalId, planName, planPrice'
       });
     }
 
@@ -109,19 +109,19 @@ router.post('/create-pix', verifyToken, async (req, res) => {
  */
 router.post('/create-card', verifyToken, async (req, res) => {
   try {
-    const { 
-      professionalId, 
-      subscriptionId, 
-      planName, 
-      planPrice, 
+    const {
+      professionalId,
+      subscriptionId,
+      planName,
+      planPrice,
       planDuration,
       token,
-      installments = 1 
+      installments = 1
     } = req.body;
 
     if (!professionalId || !planName || !planPrice || !token) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: professionalId, planName, planPrice, token' 
+      return res.status(400).json({
+        error: 'Missing required fields: professionalId, planName, planPrice, token'
       });
     }
 
@@ -209,7 +209,7 @@ router.post('/:paymentId/cancel', verifyToken, async (req, res) => {
   try {
     const { reason } = req.body;
     const payment = await Payment.findById(req.params.paymentId);
-    
+
     if (!payment) return res.status(404).json({ error: 'Payment not found' });
 
     // Verify user owns this payment

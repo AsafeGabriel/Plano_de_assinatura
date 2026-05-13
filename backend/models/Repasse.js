@@ -117,7 +117,7 @@ const repasseSchema = new mongoose.Schema({
 });
 
 // Middleware to ensure netAmount = grossAmount (no fees)
-repasseSchema.pre('save', function(next) {
+repasseSchema.pre('save', function (next) {
   if (this.status === 'pending' || this.status === 'approved') {
     this.netAmount = this.grossAmount;
   }

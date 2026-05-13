@@ -53,10 +53,10 @@ const checkSuspiciousActivity = async (req, res, next) => {
   try {
     if (req.user && req.user.id) {
       const isSuspicious = await AuditService.detectSuspiciousActivity(req.user.id);
-      
+
       if (isSuspicious) {
         console.warn(`[SECURITY] 🚨 Suspicious activity detected for user ${req.user.id}`);
-        
+
         await AuditService.logUnauthorizedAccess(
           req.user.id,
           'user',
@@ -197,7 +197,7 @@ const logSensitiveOperation = (resourceType, action) => {
     const originalJson = res.json;
 
     // Override json to log after response
-    res.json = function(data) {
+    res.json = function (data) {
       if (req.user && res.statusCode < 400) {
         AuditService.logAccess(
           req.user.id,

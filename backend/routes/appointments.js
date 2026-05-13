@@ -28,7 +28,7 @@ router.post('/', verifyToken, async (req, res) => {
         if (!user) return res.status(404).json({ error: 'User not found' });
 
         if (!user.plan) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 error: 'Active plan required to schedule appointments. Please purchase a plan.',
                 code: 'NO_PLAN'
             });
@@ -36,9 +36,9 @@ router.post('/', verifyToken, async (req, res) => {
 
         // Check if user has consultations left
         if (!user.consultationsLeft || user.consultationsLeft <= 0) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'No consultations left in your plan',
-                consultationsLeft: user.consultationsLeft || 0 
+                consultationsLeft: user.consultationsLeft || 0
             });
         }
 

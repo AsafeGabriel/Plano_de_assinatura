@@ -10,7 +10,7 @@ export default function VideoScreen({ navigation, route }) {
   const { user } = useContext(AuthContext);
   const appointment = route?.params?.appointment;
 
-  const targetName = user?.role === 'professional' 
+  const targetName = user?.role === 'professional'
     ? appointment?.patientId?.name || 'Paciente'
     : appointment?.professionalId?.name || 'Profissional';
 

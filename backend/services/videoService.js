@@ -12,7 +12,7 @@ function generateVideoLink(professionalId, patientId) {
   const timestamp = Date.now();
   const randomString = crypto.randomBytes(8).toString('hex');
   const roomName = `conecta-${professionalId.toString().slice(-4)}-${patientId.toString().slice(-4)}-${randomString}`;
-  
+
   return {
     roomName,
     jitsiUrl: `https://meet.jit.si/${roomName}`,

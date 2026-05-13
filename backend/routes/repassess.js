@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/my-history', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     if (user.role !== 'professional') {
       return res.status(403).json({ error: 'Only professionals can access this endpoint' });
     }
@@ -46,7 +46,7 @@ router.get('/my-history', verifyToken, async (req, res) => {
 router.get('/stats', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     if (user.role !== 'professional') {
       return res.status(403).json({ error: 'Only professionals can access this endpoint' });
     }

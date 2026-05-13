@@ -1,4 +1,4 @@
-(async function() {
+(async function () {
   try {
     const res = await fetch('http://127.0.0.1:3000/api/professionals/professional');
     const data = await res.json();

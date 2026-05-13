@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/my-access', verifyToken, async (req, res) => {
   try {
     const logs = await AuditService.getUserAudit(req.user.id, 100);
-    
+
     res.json({
       message: 'Your data access history',
       totalRecords: logs.length,

@@ -8,7 +8,7 @@ const Subscription = require('../models/Subscription');
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
-  
+
   try {
     const verified = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     req.user = verified;
@@ -32,7 +32,7 @@ const verifyActivePlan = async (req, res, next) => {
 
     // Check if user has a plan
     if (!user.plan) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'No active plan. Please purchase a plan to access this feature.',
         code: 'NO_PLAN'
       });
@@ -46,11 +46,11 @@ const verifyActivePlan = async (req, res, next) => {
 
     if (!subscription) {
       // Clear plan if no active subscription found
-      await User.findByIdAndUpdate(req.user.id, { 
-        plan: null, 
-        consultationsLeft: 0 
+      await User.findByIdAndUpdate(req.user.id, {
+        plan: null,
+        consultationsLeft: 0
       });
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'No active subscription found. Please purchase a plan.',
         code: 'NO_SUBSCRIPTION'
       });
@@ -74,7 +74,7 @@ const verifyConsultationsLeft = async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (!user.consultationsLeft || user.consultationsLeft <= 0) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'No consultations left in your plan. Please upgrade or renew.',
         code: 'NO_CONSULTATIONS_LEFT',
         consultationsLeft: user.consultationsLeft || 0
@@ -97,7 +97,7 @@ const verifyProfessional = async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (user.role !== 'professional') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'This feature is only available for professionals.',
         code: 'NOT_PROFESSIONAL'
       });
@@ -119,7 +119,7 @@ const verifyPatient = async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (user.role !== 'patient') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'This feature is only available for patients.',
         code: 'NOT_PATIENT'
       });

@@ -33,7 +33,7 @@ async function createPixPayment(paymentData) {
 
   try {
     const backendUrl = process.env.BACKEND_BASE_URL || 'http://localhost:3000';
-    
+
     // Create payment request body
     const paymentRequest = {
       transaction_amount: parseFloat(planPrice),
@@ -196,7 +196,7 @@ async function processWebhook(webhookData) {
   try {
     // Get payment details from Mercado Pago
     const mpPayment = await getPaymentStatus(mercadoPagoId);
-    
+
     // Find payment record
     const payment = await Payment.findOne({ mercadoPagoId });
     if (!payment) {
@@ -206,7 +206,7 @@ async function processWebhook(webhookData) {
 
     // Update payment status
     payment.mercadoPagoStatus = mpPayment.status;
-    
+
     // If approved, activate subscription
     if (mpPayment.status === 'approved') {
       payment.approvedAt = new Date();
@@ -214,7 +214,7 @@ async function processWebhook(webhookData) {
 
       // Activate subscription
       await activateSubscription(payment.subscriptionId, payment.userId, payment.professionalId);
-      
+
       return {
         processed: true,
         status: 'approved',
@@ -293,7 +293,7 @@ async function activateSubscription(subscriptionId, userId, professionalId) {
       try {
         // Create repasse (100% transfer to professional, no fees)
         await RepasseService.createRepasseFromPayment(payment._id);
-        
+
         console.log(`[PAYMENT] ✅ Repasse created for payment ${payment._id}`);
         console.log(`[PAYMENT] 💰 R$ ${payment.planPrice.toFixed(2)} will be transferred to professional (100% - no fees)`);
 

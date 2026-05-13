@@ -146,7 +146,7 @@ io.on('connection', (socket) => {
 
             // Check if patient has active plan (but professionals can always chat)
             if (user.role === 'patient' && !user.plan) {
-                socket.emit('error', { 
+                socket.emit('error', {
                     message: 'Active plan required to chat. Please purchase a plan.',
                     code: 'NO_PLAN'
                 });
@@ -155,9 +155,9 @@ io.on('connection', (socket) => {
 
             socket.join(chatId);
             socket.userData = { userId, userRole, userName: user.name };
-            
+
             console.log(`User ${user.name} (${userId}) joined chat ${chatId}`);
-            
+
             // Notify others
             io.to(chatId).emit('userJoined', {
                 userId,
@@ -179,7 +179,7 @@ io.on('connection', (socket) => {
         }
 
         const { chatId, text } = data;
-        
+
         if (!text || text.trim().length === 0) {
             socket.emit('error', { message: 'Message cannot be empty' });
             return;
@@ -187,10 +187,10 @@ io.on('connection', (socket) => {
 
         try {
             const user = await User.findById(userId);
-            
+
             // Verify patient still has active plan
             if (user.role === 'patient' && !user.plan) {
-                socket.emit('error', { 
+                socket.emit('error', {
                     message: 'Your plan has expired. Please renew to continue chatting.',
                     code: 'PLAN_EXPIRED'
                 });

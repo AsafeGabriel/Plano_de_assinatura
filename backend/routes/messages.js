@@ -36,7 +36,7 @@ router.post('/messages', authenticateToken, async (req, res) => {
 
         // Check if patient has active plan
         if (sender.role === 'patient' && !sender.plan) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 error: 'Active plan required to send messages. Please purchase a plan.',
                 code: 'NO_PLAN'
             });
