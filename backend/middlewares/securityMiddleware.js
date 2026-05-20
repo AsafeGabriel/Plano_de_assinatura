@@ -147,9 +147,17 @@ const sanitizeInput = (req, res, next) => {
  * Middleware to enforce HTTPS in production
  */
 const enforceHTTPS = (req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
+  // Allow healthcheck endpoints and internal service checks without HTTPS enforcement.
+  if (req.path === '/api/health' || req.path === '/health') {
+    return next();
+  }
+
+  const isSecure = req.secure || req.header('x-forwarded-proto') === 'https';
+
+  if (process.env.NODE_ENV === 'production' && !isSecure) {
     return res.status(403).json({ error: 'HTTPS required' });
   }
+
   next();
 };
 
