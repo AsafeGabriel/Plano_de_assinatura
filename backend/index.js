@@ -9,7 +9,10 @@ const helmet = require('helmet');
 dotenv.config();
 
 const app = express();
-app.set('trust proxy', true);
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
@@ -33,7 +36,10 @@ const {
 app.use(helmet());
 
 // Apply security middleware
-app.use(enforceHTTPS);
+if (process.env.NODE_ENV === 'production') {
+    app.use(enforceHTTPS);
+}
+
 app.use(captureRequestInfo);
 app.use(sanitizeInput);
 
